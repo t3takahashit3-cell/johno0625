@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>探求学習「インフォハンティング講座」クイズ</title>
+    <style>
+        /* RPG風のデザインシステム */
+        @import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
+
+        body {
+            background-color: #111;
+            color: #fff;
+            font-family: 'DotGothic16', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 700px;
+            background-color: #000;
+            border: 4px solid #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        h1, h2, h3 {
+            text-align: center;
+            color: #ffff55;
+            text-shadow: 2px 2px #000;
+            margin-top: 0;
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        /* 画像・イラストまわり */
+        .img-container {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+            min-height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .title-img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #fff;
+        }
+
+        .monster-img {
+            max-height: 160px;
+            object-fit: contain;
+            transition: all 0.5s ease;
+        }
+
+        /* 爆発エフェクト */
+        .exploded {
+            animation: explode 0.5s forwards;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(1); filter: brightness(3) blur(0px); opacity: 1; }
+            50% { transform: scale(1.4); filter: brightness(5) blur(5px); opacity: 0.8; }
+            100% { transform: scale(0); filter: brightness(10) blur(20px); opacity: 0; }
+        }
+
+        /* 最終問題の揺れる演出 */
+        .shake-img {
+            animation: shake 0.5s infinite;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(0px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(2px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(2px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        /* ボタン・選択肢 */
+        .btn-rpg {
+            display: block;
+            width: 100%;
+            background-color: #222;
+            color: #fff;
+            border: 3px solid #fff;
+            padding: 12px;
+            margin: 10px 0;
+            font-family: 'DotGothic16', sans-serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            text-align: left;
+            box-sizing: border-box;
+            transition: background 0.2s;
+        }
+
+        .btn-rpg:hover {
+            background-color: #444;
+            color: #ffff55;
+            border-color: #ffff55;
+        }
+
+        .btn-center {
+            text-align: center;
+            max-width: 200px;
+            margin: 20px auto 0 auto;
+        }
+
+        /* バナー（外部リンク） */
+        .search-banner {
+            display: block;
+            background: linear-gradient(45deg, #0044aa, #0088ff);
+            color: white;
+            text-align: center;
+            padding: 12px;
+            margin: 15px 0;
+            border: 2px dashed #fff;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+        .search-banner:hover {
+            background: linear-gradient(45deg, #003388, #0066cc);
+            box-shadow: 0 0 10px #0088ff;
+        }
+
+        /* 解説エリア */
+        .commentary-box {
+            display: none;
+            background-color: #113311;
+            border: 2px solid #55ff55;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+        }
+
+        /* メッセージアニメーション用 */
+        .error-flash {
+            animation: flash 0.2s 2;
+        }
+        @keyframes flash {
+            0% { background-color: #000; }
+            50% { background-color: #550000; }
+            100% { background-color: #000; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container" id="gameContainer">
+
+    <div id="screen-title" class="screen active">
+        <h2>長野県上伊那農業高等学校<br>探求学習「インフォハンティング講座」</h2>
+        <div class="img-container">
+            <img src="https://raw.githubusercontent.com/t3takahashit3-cell/johno0625/main/title.png" alt="タイトル画像" class="title-img">
+        </div>
+        <button class="btn-rpg btn-center" onclick="nextScreen('screen-q1')">始める</button>
+    </div>
+
+    <div id="screen-q1" class="screen">
+        <h3>【図書館を活用せよ！】第一問</h3>
+        <p>長野県立図書館の横断検索で「若者 移住」と検索し、問題に答えなさい。</p>
+        <a href="https://www.knowledge.pref.nagano.lg.jp/index.html" target="_blank" class="search-banner">🔗 長野県立図書館 横断検索を開く</a>
+        
+        <p><strong>問題：表示された本のうち、伊那市図書館にある本はどれでしょう。</strong></p>
+        
+        <div class="img-container">
+            <img id="img-q1" src="https://raw.githubusercontent.com/t3takahashit3-cell/johno0625/main/sl.gif" alt="monster" class="monster-img">
+        </div>
+
+        <div id="choices-q1">
+            <button class="btn-rpg" onclick="checkAnswer('q1', 1)">① イナカをツクル</button>
+            <button class="btn-rpg" onclick="checkAnswer('q1', 2)">② 「とりあえず」でキャリアは決まる</button>
+            <button class="btn-rpg" onclick="checkAnswer('q1', 3)">③ ルポ若者流出</button>
+        </div>
+
+        <div id="box-q1" class="commentary-box">
+            <p style="color: #55ff55; margin-top:0;">🌟正解！効果はばつぐんだ！</p>
+            <p><strong>解説：</strong>若者の田園回帰が止まらない。ふるさと回帰支援センターへの相談者数は10年間で13.4倍に激増した。「自分らしい生き方をしたい!ライフスタイルを変えたい!」という望みは、どうすればかなえられるのか? 受け入れ側は何に気をつければよいのか? 日本で一番たくさん移住相談を受けてきた著者が体験をとおして教える、失敗しないイナカの創り方</p>
+            <button class="btn-rpg btn-center" onclick="nextScreen('screen-q2')">次に進む</button>
+        </div>
+    </div>
+
+    <div id="screen-q2" class="screen">
+        <h3>【論文検索を活用せよ！】第二問</h3>
+        <p>CiNiiで「長野県」の先行研究を検索せよ！</p>
+        <a href="https://cir.nii.ac.jp/" target="_blank" class="search-banner">🔗 CiNii Researchを開く</a>
+        
+        <p><strong>問題：CiNiiで「長野県 移住」と検索すると何件ヒットしますか（論文含めすべて）</strong></p>
+        
+        <div class="img-container">
+            <img id="img-q2" src="https://raw.githubusercontent.com/t3takahashit3-cell/johno0625/main/gb.gif" alt="monster" class="monster-img">
+        </div>
+
+        <div id="choices-q2">
+            <button class="btn-rpg" onclick="checkAnswer('q2', 1)">① ８７件</button>
+            <button class="btn-rpg" onclick="checkAnswer('q2', 2)">② １５８件</button>
+            <button class="btn-rpg" onclick="checkAnswer('q2', 3)">③ １０２９件</button>
+        </div>
+
+        <div id="box-q2" class="commentary-box">
+            <p style="color: #55ff55; margin-top:0;">🌟正解！かいしんの一撃！</p>
+            <p><strong>解説：</strong>研究論文がかなりありますね！論文のタイトルの横に「機関リポジトリ」や「DOI」といったボタンがついているものがあります。このボタンがついている論文は、無料で閲覧できます。</p>
+            <button class="btn-rpg btn-center" onclick="nextScreen('screen-q3')">次に進む</button>
+        </div>
+    </div>
+
+    <div id="screen-q3" class="screen">
+        <h3>【論文検索を活用せよ！】第三問</h3>
+        <p>Google Scholarで「伊那 移住」と検索し、指定の条件の資料数を答えよ！</p>
+        <a href="https://scholar.google.co.jp/" target="_blank" class="search-banner">🔗 Google Scholarを開く</a>
+        
+        <p><strong>問題：Google Scholarで「伊那 移住」と検索し、2026年以降の資料は何件ヒットしますか？</strong></p>
+        
+        <div class="img-container">
+            <img id="img-q3" src="https://raw.githubusercontent.com/t3takahashit3-cell/johno0625/main/zn.gif" alt="monster" class="monster-img">
+        </div>
+
+        <div id="choices-q3">
+            <button class="btn-rpg" onclick="checkAnswer('q3', 1)">① 5件</button>
+            <button class="btn-rpg" onclick="checkAnswer('q3', 2)">② 9件</button>
+            <button class="btn-rpg" onclick="checkAnswer('q3', 3)">③ 10件</button>
+        </div>
+
+        <div id="box-q3" class="commentary-box">
+            <p style="color: #55ff55; margin-top:0;">🌟正解！敵を撃破した！</p>
+            <p><strong>解説：</strong>興味があるものは後で中を見てみましょう！最新の研究データもGoogle Scholarならすぐに見つけられますね。</p>
+            <button class="btn-rpg btn-center" onclick="nextScreen('screen-q4')">次に進む</button>
+        </div>
+    </div>
+
+    <div id="screen-q4" class="screen">
+        <h3>【データ分析！】第四問</h3>
+        <p>統計データを使って、本当の姿を調べよう。今回は「RESAS 地域経済分析システム」を使います。</p>
+        <a href="https://resas.go.jp/" target="_blank" class="search-banner">🔗 RESAS 地域経済分析システムを開く</a>
+        
+        <p><strong>問題：生産年齢人口（働ける年齢層）の減少は、日本国内で大きな問題です。その中でも、生産年齢人口の減少が一番ゆるやか（働ける人の減少が少ない）と予想される地域は以下のどこでしょうか。※人数ではなく、あくまで推移でみてください。</strong></p>
+        
+        <div class="img-container">
+            <img id="img-q4" src="https://raw.githubusercontent.com/t3takahashit3-cell/johno0625/main/mi2.gif" alt="monster" class="monster-img">
+        </div>
+
+        <div id="choices-q4">
+            <button class="btn-rpg" onclick="checkAnswer('q4', 1)">① 駒ヶ根市</button>
+            <button class="btn-rpg" onclick="checkAnswer('q4', 2)">② 伊那市</button>
+            <button class="btn-rpg" onclick="checkAnswer('q4', 3)">③ 箕輪町</button>
+            <button class="btn-rpg" onclick="checkAnswer('q4', 4)">④ 南箕輪村</button>
+        </div>
+
+        <div id="box-q4" class="commentary-box">
+            <p style="color: #55ff55; margin-top:0;">🌟正解！素晴らしい洞察力だ！</p>
+            <p><strong>解説：</strong>長野県内でも、御代田町や南箕輪村などは、若い層の移住が多くありました。働く世代もそれにつれて増える傾向です。</p>
+            <button class="btn-rpg btn-center" onclick="nextScreen('screen-q5')">次に進む</button>
+        </div>
+    </div>
+
+    <div id="screen-q5" class="screen">
+        <h3>【データ分析！】第五問</h3>
+        <p>引き続きRESAS等のデータをもとに考えよう！</p>
+        
+        <p><strong>問題：伊那市で一番会社の数が多い業種はどれでしょう。</strong></p>
+        
+        <div class="img-container">
+            <img id="img-q5" src="https://raw.githubusercontent.com/t3takahashit3-cell/johno0625/main/dr.gif" alt="monster" class="monster-img">
+        </div>
+
+        <div id="choices-q5">
+            <button class="btn-rpg" onclick="checkAnswer('q5', 1)">① 卸売業・小売業</button>
+            <button class="btn-rpg" onclick="checkAnswer('q5', 2)">② 製造業</button>
+            <button class="btn-rpg" onclick="checkAnswer('q5', 3)">③ 農林漁業</button>
+            <button class="btn-rpg" onclick="checkAnswer('q5', 4)">④ 建設業</button>
+            <button class="btn-rpg" onclick="checkAnswer('q5', 5)">⑤ 宿泊業、飲食サービス業</button>
+        </div>
+
+        <div id="box-q5" class="commentary-box">
+            <p style="color: #55ff55; margin-top:0;">🌟正解！ばっちり決まった！</p>
+            <p><strong>解説：</strong>小さなお店も多くあるので、いわゆる「お店」の数は多くなっています。</p>
+            <button class="btn-rpg btn-center" onclick="startFinalQuestion()">最終問題へ進む</button>
+        </div>
+    </div>
+
+    <div id="screen-q6" class="screen">
+        <h3>👿 最終問題 👿</h3>
+        
+        <div id="final-boss-content" style="display: none;">
+            <p><strong>問題：伊那市で一番売上高が高い業種はどれでしょう。</strong></p>
+            
+            <div class="img-container">
+                <img id="img-q6" src="https://raw.githubusercontent.com/t3takahashit3-cell/johno0625/main/ma.gif" alt="final boss" class="monster-img shake-img">
+            </div>
+
+            <div id="choices-q6">
+                <button class="btn-rpg" onclick="checkAnswer('q6', 1)">① 卸売業・小売業</button>
+                <button class="btn-rpg" onclick="checkAnswer('q6', 2)">② 製造業</button>
+                <button class="btn-rpg" onclick="checkAnswer('q6', 3)">③ 農林漁業</button>
+                <button class="btn-rpg" onclick="checkAnswer('q6', 4)">④ 建設業</button>
+                <button class="btn-rpg" onclick="checkAnswer('q6', 5)">⑤ 宿泊業、飲食サービス業</button>
+            </div>
+        </div>
+
+        <div id="box-q6" class="commentary-box">
+            <p style="color: #ffff55; font-size: 1.4rem; text-align: center; margin-top:0;">🎉 全問クリア！完全制覇！ 🎉</p>
+            <p><strong>解説：</strong>売上高というのは「いくら売っているか」ということ。やはり長野県は製造業の力が強いということが分かります。これで君もインフォハンティングマスターだ！</p>
+            <button class="btn-rpg btn-center" onclick="exitFinalQuestion()">タイトルに戻る</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 正解データ
+    const answers = {
+        q1: 1,
+        q2: 2,
+        q3: 2,
+        q4: 4,
+        q5: 1,
+        q6: 2
+    };
+
+    // BGM管理用変数とタイマーID
+    let bgm = null;
+    let bgmStopTimer = null;
+
+    // オーディオコンテキスト（SE用）
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // 低い音（ブブー！）を鳴らす関数
+    function playBuzzSound() {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(120, audioCtx.currentTime); 
+        osc.frequency.setValueAtTime(100, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+    }
+
+    // 高い音（ピコーン！正解）を鳴らす関数
+    function playCorrectSound() {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(900, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+    }
+
+    // 画面遷移関数
+    function nextScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        
+        if(screenId.startsWith('screen-q')) {
+            const qKey = screenId.replace('screen-', '');
+            const commentBox = document.getElementById(`box-${qKey}`);
+            if(commentBox) commentBox.style.display = 'none';
+            const choices = document.getElementById(`choices-${qKey}`);
+            if(choices) choices.style.display = 'block';
+            const img = document.getElementById(`img-${qKey}`);
+            if(img) {
+                img.classList.remove('exploded');
+                if(qKey === 'q6') img.classList.add('shake-img');
+            }
+        }
+    }
+
+    // 最終問題専用の開始演出
+    function startFinalQuestion() {
+        nextScreen('screen-q6');
+        document.getElementById('final-boss-content').style.display = 'none';
+        
+        // 指定されたコードでBGMを再生
+        bgm = new Audio("https://raw.githubusercontent.com/t3takahashit3-cell/johno0625/main/bgm.mp3");
+        bgm.play();
+        
+        // ★【新規追加】5秒後に自動で音楽を止めるタイマーをセット
+        bgmStopTimer = setTimeout(() => {
+            stopBGM();
+        }, 5000);
+        
+        // 2秒経過した時点でゆっくり問題とイラストを表示
+        setTimeout(() => {
+            const content = document.getElementById('final-boss-content');
+            content.style.display = 'block';
+            content.style.opacity = 0;
+            content.style.transition = 'opacity 1.5s ease';
+            setTimeout(() => content.style.opacity = 1, 50);
+        }, 2000);
+    }
+
+    // BGMを完全に停止・リセットする独立関数
+    function stopBGM() {
+        if (bgm) {
+            bgm.pause();
+            bgm.currentTime = 0;
+        }
+        if (bgmStopTimer) {
+            clearTimeout(bgmStopTimer);
+        }
+    }
+
+    // 最終問題を終了してタイトルに戻る際の処理
+    function exitFinalQuestion() {
+        stopBGM(); // タイトルに戻るときもBGMを確実にストップ
+        nextScreen('screen-title');
+    }
+
+    // 正誤判定システム
+    function checkAnswer(qKey, selectedIdx) {
+        if (selectedIdx === answers[qKey]) {
+            // 正解の場合
+            playCorrectSound();
+            
+            // もし正解した時点でBGMがまだ鳴っていたら止める
+            if (qKey === 'q6') {
+                stopBGM();
+            }
+
+            const img = document.getElementById(`img-${qKey}`);
+            if(img) {
+                img.classList.remove('shake-img'); 
+                img.classList.add('exploded');
+            }
+            
+            setTimeout(() => {
+                document.getElementById(`choices-${qKey}`).style.display = 'none';
+                document.getElementById(`box-${qKey}`).style.display = 'block';
+            }, 500); 
+
+        } else {
+            // 不正解の場合
+            playBuzzSound();
+            const container = document.getElementById('gameContainer');
+            container.classList.add('error-flash');
+            setTimeout(() => {
+                container.classList.remove('error-flash');
+            }, 400);
+            alert('❌ ブブー！違います。もう一度調べてみよう！');
+        }
+    }
+</script>
+
+</body>
+</html>
